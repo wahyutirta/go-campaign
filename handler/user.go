@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"gocampaign/helper"
 	"gocampaign/user"
 	"net/http"
@@ -127,4 +128,39 @@ func (h *userHandler) CheckEmailAvaibility(c *gin.Context) {
 
 	response := helper.APIResponse(metaMessage, http.StatusOK, "error", data)
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *userHandler) UploadAvatar(c *gin.Context) {
+	file, err := c.FormFile("avatar") // nama parameter untuk file
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar", http.StatusInternalServerError, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	userID := 2
+	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
+
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to save avatar file", http.StatusInternalServerError, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	user, err := h.userService.SaveAvatar(userID, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to update avatar in DB", http.StatusInternalServerError, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	data := gin.H{"is_uploaded": true, "user": user}
+	response := helper.APIResponse("Success uploads avatar file", http.StatusOK, "success", data)
+	c.JSON(http.StatusBadRequest, response)
+	return
+
 }
