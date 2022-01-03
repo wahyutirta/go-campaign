@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"gocampaign/auth"
 	"gocampaign/helper"
 	"gocampaign/user"
 	"net/http"
@@ -11,10 +12,11 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegisterUser(c *gin.Context) {
@@ -34,7 +36,6 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 	}
 
 	newUser, err := h.userService.RegisterUser(input)
-	formatter := user.FormatUser(newUser, "token")
 
 	if err != nil {
 		message := "Register Account Failed"
@@ -42,6 +43,17 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
+
+	token, err := h.authService.GenerateToken(newUser.ID)
+
+	if err != nil {
+		message := "Generate Token Failed"
+		response := helper.APIResponse(message, http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := user.FormatUser(newUser, token)
 
 	message := "Account has been recorded"
 
@@ -81,7 +93,16 @@ func (h *userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	formatter := user.FormatUser(loggedUser, "token")
+	token, err := h.authService.GenerateToken(loggedUser.ID)
+	if err != nil {
+		fmt.Println(err)
+		message := "Generate Login Token Failed"
+		response := helper.APIResponse(message, http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := user.FormatUser(loggedUser, token)
 	response := helper.APIResponse("Successfully Logging In", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 
@@ -161,6 +182,5 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	data := gin.H{"is_uploaded": true, "user": user}
 	response := helper.APIResponse("Success uploads avatar file", http.StatusOK, "success", data)
 	c.JSON(http.StatusBadRequest, response)
-	return
 
 }
