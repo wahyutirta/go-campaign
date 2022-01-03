@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"gocampaign/auth"
 	"gocampaign/handler"
+	"gocampaign/helper"
 	"gocampaign/user"
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -44,4 +47,28 @@ func main() {
 	// repository
 	// db
 
+	//middle ware
+	// ambil value header authorization
+	// dari header authorization, kita ambil nikai token
+	// validasi token
+	// ambil user id, ambil user dari db berdasarkan user id
+	// set context berisi user
+
+}
+
+func authMiddleware(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+
+	if !strings.Contains(authHeader, "Bearer") {
+		response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
+		return
+	}
+
+	var tokenString string = ""
+	arrayToken := strings.Split(authHeader, " ")
+	if len(arrayToken) == 2 {
+		tokenString = arrayToken[1]
+	}
+	token, err := 
 }
