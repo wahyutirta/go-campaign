@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -37,7 +38,7 @@ func main() {
 	api.POST("/users", userHandler.RegisterUser)
 	api.POST("/session", userHandler.Login)
 	api.POST("/email_checkers", userHandler.CheckEmailAvaibility)
-	api.POST("/avatars", userHandler.UploadAvatar)
+	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 
 	router.Run()
 
@@ -56,19 +57,49 @@ func main() {
 
 }
 
-func authMiddleware(c *gin.Context) {
-	authHeader := c.GetHeader("Authorization")
+func authMiddleware(authService auth.Service, userService user.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
 
-	if !strings.Contains(authHeader, "Bearer") {
-		response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
-		return
-	}
+		fmt.Println(authHeader)
 
-	var tokenString string = ""
-	arrayToken := strings.Split(authHeader, " ")
-	if len(arrayToken) == 2 {
-		tokenString = arrayToken[1]
+		// add authorization bearer token
+		if !strings.Contains(authHeader, "Bearer") {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error no bearer detected", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
+			return
+		}
+
+		var tokenString string = ""
+		arrayToken := strings.Split(authHeader, " ")
+		if len(arrayToken) == 2 {
+			tokenString = arrayToken[1]
+		}
+		token, err := authService.ValidateToken(tokenString)
+
+		if err != nil {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error validate", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
+			return
+		}
+
+		claim, ok := token.Claims.(jwt.MapClaims)
+
+		if !ok || !token.Valid {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
+			return
+		}
+
+		userID := int(claim["user_id"].(float64))
+
+		user, err := userService.GetUserByID(userID)
+
+		if err != nil {
+			response := helper.APIResponse("Internal Server Error", http.StatusInternalServerError, "error", nil)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response) // terminate sebelum melanjutkan ke proses selanjutnya
+			return
+		}
+		c.Set("currentUser", user)
 	}
-	token, err := 
 }
