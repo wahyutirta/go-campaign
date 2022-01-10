@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gocampaign/auth"
+	"gocampaign/campaign"
 	"gocampaign/handler"
 	"gocampaign/helper"
 	"gocampaign/user"
@@ -27,6 +28,12 @@ func main() {
 	fmt.Println("Success connecting to the database")
 
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
+	campaigns, _ := campaignRepository.FindByUserID(2)
+	fmt.Println("campaign find by id debug")
+	fmt.Println(len(campaigns))
+
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 
@@ -63,7 +70,7 @@ func authMiddleware(authService auth.Service, userService user.Service) gin.Hand
 
 		fmt.Println(authHeader)
 
-		// add authorization bearer token
+		// add authorization bearer token in postman in testing
 		if !strings.Contains(authHeader, "Bearer") {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error no bearer detected", nil)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response) // terminate sebelum melanjutkan ke proses selanjutnya
