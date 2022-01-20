@@ -1,5 +1,9 @@
 package campaign
 
+import (
+	"regexp"
+)
+
 type CampaignFormatter struct {
 	ID               int    `json:"id"`
 	UserID           int    `json:"user_id"`
@@ -38,4 +42,56 @@ func FormatCampaigns(campaigns []Campaign) []CampaignFormatter {
 
 	}
 	return campaignsFormatter
+}
+
+type CampaignDetailFormatter struct {
+	ID               int                   `json:"id"`
+	Name             string                `json:"name"`
+	ShortDescription string                `json:"short_description"`
+	Description      string                `json:"description"`
+	ImageUrl         string                `json:"image_url"`
+	GoalAmount       int                   `json:"goal_amount"`
+	CurrentAmount    int                   `json:"current_amount"`
+	UserID           int                   `json:"user_id"`
+	Slug             string                `json:"slug"`
+	Perks            []string              `json:"perks"`
+	User             CampaignUserFormatter `json:"user"`
+}
+
+type CampaignUserFormatter struct {
+	Name     string `json:"name"`
+	ImageUrl string `json:"image_url"`
+}
+
+func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
+	campaignDetailFormatter := CampaignDetailFormatter{}
+	campaignDetailFormatter.ID = campaign.ID
+	campaignDetailFormatter.Name = campaign.Name
+	campaignDetailFormatter.ShortDescription = campaign.ShortDescription
+	campaignDetailFormatter.Description = campaign.Description
+	campaignDetailFormatter.GoalAmount = campaign.GoalAmount
+	campaignDetailFormatter.CurrentAmount = campaign.CurrentAmount
+	campaignDetailFormatter.Slug = campaign.Slug
+	campaignDetailFormatter.UserID = campaign.UserID
+	campaignDetailFormatter.ImageUrl = ""
+
+	if len(campaign.CampaignImages) > 0 {
+		campaignDetailFormatter.ImageUrl = campaign.CampaignImages[0].FileName
+	}
+
+	reSplit := regexp.MustCompile(`,\s*`)
+	var perks []string
+
+	perks = append(perks, reSplit.Split(campaign.Perks, -1)...)
+	campaignDetailFormatter.Perks = perks
+
+	campaignUserFormatter := CampaignUserFormatter{
+		Name:     campaign.User.Name,
+		ImageUrl: campaign.User.AvatarFileName,
+	}
+
+	campaignDetailFormatter.User = campaignUserFormatter
+
+	return campaignDetailFormatter
+
 }
