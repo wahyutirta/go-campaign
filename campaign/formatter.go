@@ -45,22 +45,28 @@ func FormatCampaigns(campaigns []Campaign) []CampaignFormatter {
 }
 
 type CampaignDetailFormatter struct {
-	ID               int                   `json:"id"`
-	Name             string                `json:"name"`
-	ShortDescription string                `json:"short_description"`
-	Description      string                `json:"description"`
-	ImageUrl         string                `json:"image_url"`
-	GoalAmount       int                   `json:"goal_amount"`
-	CurrentAmount    int                   `json:"current_amount"`
-	UserID           int                   `json:"user_id"`
-	Slug             string                `json:"slug"`
-	Perks            []string              `json:"perks"`
-	User             CampaignUserFormatter `json:"user"`
+	ID               int                      `json:"id"`
+	Name             string                   `json:"name"`
+	ShortDescription string                   `json:"short_description"`
+	Description      string                   `json:"description"`
+	ImageUrl         string                   `json:"image_url"`
+	GoalAmount       int                      `json:"goal_amount"`
+	CurrentAmount    int                      `json:"current_amount"`
+	UserID           int                      `json:"user_id"`
+	Slug             string                   `json:"slug"`
+	Perks            []string                 `json:"perks"`
+	User             CampaignUserFormatter    `json:"user"`
+	Images           []CampaignImageFormatter `json:"images"`
 }
 
 type CampaignUserFormatter struct {
 	Name     string `json:"name"`
 	ImageUrl string `json:"image_url"`
+}
+
+type CampaignImageFormatter struct {
+	ImageUrl  string `json:"image_url"`
+	IsPrimary bool   `json:"is_primary"`
 }
 
 func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
@@ -75,9 +81,9 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
 	campaignDetailFormatter.UserID = campaign.UserID
 	campaignDetailFormatter.ImageUrl = ""
 
-	if len(campaign.CampaignImages) > 0 {
-		campaignDetailFormatter.ImageUrl = campaign.CampaignImages[0].FileName
-	}
+	// if len(campaign.CampaignImages) > 0 {
+	// 	campaignDetailFormatter.ImageUrl = campaign.CampaignImages[0].FileName
+	// }
 
 	reSplit := regexp.MustCompile(`,\s*`)
 	var perks []string
@@ -91,6 +97,23 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
 	}
 
 	campaignDetailFormatter.User = campaignUserFormatter
+
+	images := []CampaignImageFormatter{}
+
+	for _, img := range campaign.CampaignImages {
+		campaignImageFormatter := CampaignImageFormatter{
+			ImageUrl: img.FileName,
+		}
+		isPrimary := false
+		if img.IsPrimary == 1 {
+			isPrimary = true
+		}
+		campaignImageFormatter.IsPrimary = isPrimary
+
+		images = append(images, campaignImageFormatter)
+	}
+
+	campaignDetailFormatter.Images = images
 
 	return campaignDetailFormatter
 
