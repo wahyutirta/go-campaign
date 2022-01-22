@@ -1,0 +1,34 @@
+input := campaign.CreateCampaignInput{}
+
+	input.Name = "Test Penggalangan Dana"
+	input.ShortDescription = "short test"
+	input.Description = "long test"
+	input.GoalAmount = 10000
+	input.Perks = "satu, dua, tiga"
+	inputUser, _ := userService.GetUserByID(1)
+
+	input.User = inputUser
+
+	newCampaign, err := campaignService.CreateCampaign(input)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	fmt.Println(newCampaign)
+
+    untuk mendapatkan jwt, hit endpoint session 
+    email = admin@admin.com
+    password = password
+
+    daftar akun
+    "name" : "admin",
+    "email" : "admin@admin.com",
+    "occupation" : "student",
+    "password" : "password"
+
+    create campaign
+    "name" : "campaign baru satu",
+    "short_description" : "ini campaign baru banget",
+    "description" : "ini campaign baru banget fix sih ya gitu kata admin",
+    "goal_amount" : 10000,
+    "perks" : "satu perks, dua perks, tiga perks"
