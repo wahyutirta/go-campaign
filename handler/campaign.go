@@ -134,6 +134,13 @@ func (h *campaignHandler) UpdateCampaign(c *gin.Context) {
 }
 
 func (h *campaignHandler) UploadImage(c *gin.Context) {
+	// handler
+	// tangkap input dan ubah ke struct input
+	// save image campaign ke suatu folder
+	// service (kondisi memanggil point 2 di repo1)
+	// repository :
+	// 	1. create image/save data image ke tabel campaign_image
+	// 	2. ubah is_primary true ke false
 	var input campaign.CreateCampaignImageInput
 
 	err := c.ShouldBind(&input)
@@ -178,11 +185,3 @@ func (h *campaignHandler) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 
 }
-
-// handler
-// tangkap input dan ubah ke struct input
-// save image campaign ke suatu folder
-// service (kondisi memanggil point 2 di repo1)
-// repository :
-// 	1. create image/save data image ke tabel campaign_image
-// 	2. ubah is_primary true ke false
