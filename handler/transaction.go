@@ -24,7 +24,7 @@ func NewTransactionHandler(service transaction.Service) *transactionHandler {
 
 func (h *transactionHandler) GetCampaignTransactions(c *gin.Context) {
 	var input transaction.GetCampaignTransactionsInput
-	err := c.ShouldBind(&input)
+	err := c.ShouldBindUri(&input)
 
 	if err != nil {
 		errors := helper.FormatValidationError(err)
