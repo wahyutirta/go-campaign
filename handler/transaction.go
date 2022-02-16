@@ -3,6 +3,7 @@ package handler
 import (
 	"gocampaign/helper"
 	"gocampaign/transaction"
+	"gocampaign/user"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,8 @@ func (h *transactionHandler) GetCampaignTransactions(c *gin.Context) {
 	var input transaction.GetCampaignTransactionsInput
 	err := c.ShouldBindUri(&input)
 
+	currentUser := c.MustGet("currectUser").(user.User)
+	input.User = currentUser
 	if err != nil {
 		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{"errors": errors}
