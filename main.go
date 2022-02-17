@@ -58,7 +58,7 @@ func main() {
 	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 
 	api.GET("/campaigns/:id/transactions", authMiddleware(authService, userService), transactionHandler.GetCampaignTransactions)
-
+	api.GET("/transactions", authMiddleware(authService, userService), transactionHandler.GetUserTransaction)
 	router.Run()
 
 	// input dari user
