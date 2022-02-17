@@ -46,3 +46,9 @@ func (h *transactionHandler) GetCampaignTransactions(c *gin.Context) {
 	response := helper.APIResponse("Campaign Transactions", http.StatusOK, "success", transaction.FormatCampaignTransactions(transactions))
 	c.JSON(http.StatusOK, response)
 }
+
+// get user transaction
+// handler
+// ambil id user dari jwt/middle ware
+// service
+// repo => ambil data transactions (preload campaign)
