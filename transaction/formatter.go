@@ -65,7 +65,7 @@ func FormatUserTransactions(transactions []Transaction) []UserTransactionFormatt
 	if len(transactions) == 0 {
 		return []UserTransactionFormatter{}
 	}
-	var transactionsFormatter []UserTransactionFormatter{}
+	var transactionsFormatter []UserTransactionFormatter
 	for _, transaction := range transactions {
 		formatter := FormatUserTransaction(transaction)
 		transactionsFormatter = append(transactionsFormatter, formatter)
