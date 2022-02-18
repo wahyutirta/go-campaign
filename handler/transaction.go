@@ -67,3 +67,8 @@ func (h *transactionHandler) GetUserTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 
 }
+
+// input dari user
+// handler tangkap input, mapping ke input struct
+// panggil service buat transaksi,
+// panggil repository, create new transaction data
