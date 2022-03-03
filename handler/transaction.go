@@ -94,3 +94,8 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusBadRequest, response)
 
 }
+
+// input dari user
+// handler tangkap input, mapping ke input struct
+// panggil service buat transaksi,
+// panggil repository, create new transaction data
