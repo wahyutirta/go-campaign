@@ -139,18 +139,18 @@ func (ser *service) GetPayment(transaction Transaction, user user.User) (string,
 	snapReq := GenerateSnapReq(transaction, user)
 	initializeSnapClient()
 
-	fmt.Println("================== create transaction")
-	createTransaction(snapReq)
+	// fmt.Println("================== create transaction")
+	// createTransaction(snapReq)
 
-	fmt.Println("================== create token transaction with gateway")
-	paymentToken := createTokenTransactionWithGateway(snapReq)
-	fmt.Println("Token : ", paymentToken)
-	fmt.Println(reflect.TypeOf(paymentToken))
+	// fmt.Println("================== create token transaction with gateway")
+	// paymentToken := createTokenTransactionWithGateway(snapReq)
+	// fmt.Println("Token : ", paymentToken)
+	// fmt.Println(reflect.TypeOf(paymentToken))
 
 	fmt.Println("================== create url transaction")
 	paymentURL := createUrlTransactionWithGateway(snapReq)
-	fmt.Println("Token : ", paymentURL)
-	fmt.Println(reflect.TypeOf(paymentURL))
+	fmt.Println("RedirectURL : ", paymentURL)
+	// fmt.Println(reflect.TypeOf(paymentURL))
 
 	return paymentURL, nil
 }
