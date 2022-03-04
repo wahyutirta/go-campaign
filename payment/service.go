@@ -123,16 +123,21 @@ func createTokenTransactionWithGateway(snapReq *snap.Request) string {
 	return resp
 }
 
-func createUrlTransactionWithGateway(snapReq *snap.Request) string {
+func createUrlTransactionWithGateway(snapReq *snap.Request) (string, error) {
 	s.Options.SetContext(context.Background())
 
 	resp, err := s.CreateTransactionUrl(snapReq)
 	if err != nil {
-		fmt.Println("Error :", err.GetMessage())
+		msg := err.GetMessage()        // general message error
+		stsCode := err.GetStatusCode() // HTTP status code e.g: 400, 401, etc.
+		fmt.Printf("Error Code %d : %s", stsCode, msg)
+		// rawApiRes := err.GetRawApiResponse() // raw Go HTTP response object
+		rawErr := err.GetRawError() // raw Go err object
+		return resp, rawErr
 	}
 	// fmt.Println("Response : ", resp)
 	// fmt.Println(reflect.TypeOf(resp))
-	return resp
+	return resp, nil
 }
 
 func (ser *service) GetPayment(transaction Transaction, user user.User) (string, error) {
@@ -148,7 +153,12 @@ func (ser *service) GetPayment(transaction Transaction, user user.User) (string,
 	// fmt.Println(reflect.TypeOf(paymentToken))
 
 	fmt.Println("================== create url transaction")
-	paymentURL := createUrlTransactionWithGateway(snapReq)
+	paymentURL, err := createUrlTransactionWithGateway(snapReq)
+
+	if err != nil {
+		return paymentURL, err
+	}
+
 	fmt.Println("RedirectURL : ", paymentURL)
 	// fmt.Println(reflect.TypeOf(paymentURL))
 
