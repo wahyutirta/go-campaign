@@ -13,3 +13,15 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+############################
+# Node.js
+############################
+
+lib-cov
+lcov.info
+pids
+logs
+results
+node_modules
+.node_history
