@@ -1,4 +1,4 @@
-package payment
+package paymentmidtrans
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/coreapi"
 	"github.com/midtrans/midtrans-go/snap"
 )
 
@@ -23,6 +24,7 @@ func NewService() *service {
 }
 
 var s snap.Client
+var c coreapi.Client
 
 // func setupGlobalMidtransConfig() {
 // 	midtrans.ServerKey = "SB-Mid-server-0men3mQGRfApcGptDcNo573B"
@@ -49,6 +51,10 @@ var s snap.Client
 
 func initializeSnapClient() {
 	s.New("SB-Mid-server-0men3mQGRfApcGptDcNo573B", midtrans.Sandbox)
+}
+
+func initializeCoreClient() {
+	c.New("SB-Mid-server-0men3mQGRfApcGptDcNo573B", midtrans.Sandbox)
 }
 
 func GenerateSnapReq(transaction Transaction, user user.User) *snap.Request {
@@ -143,6 +149,8 @@ func createUrlTransactionWithGateway(snapReq *snap.Request) (string, error) {
 func (ser *service) GetPayment(transaction Transaction, user user.User) (string, error) {
 	snapReq := GenerateSnapReq(transaction, user)
 	initializeSnapClient()
+	initializeCoreClient()
+	midtrans.DefaultLoggerLevel = &midtrans.LoggerImplementation{LogLevel: midtrans.NoLogging}
 
 	// fmt.Println("================== create transaction")
 	// createTransaction(snapReq)
@@ -152,15 +160,44 @@ func (ser *service) GetPayment(transaction Transaction, user user.User) (string,
 	// fmt.Println("Token : ", paymentToken)
 	// fmt.Println(reflect.TypeOf(paymentToken))
 
-	fmt.Println("================== create url transaction")
+	fmt.Println("create snap url transaction")
 	paymentURL, err := createUrlTransactionWithGateway(snapReq)
 
 	if err != nil {
 		return paymentURL, err
 	}
 
-	fmt.Println("RedirectURL : ", paymentURL)
+	// fmt.Println("RedirectURL SNAP: ", paymentURL)
 	// fmt.Println(reflect.TypeOf(paymentURL))
 
+	coreAPITransaction()
+
 	return paymentURL, nil
+}
+
+func coreAPITransaction() {
+	// 2. Initiate charge request
+	chargeReq := &coreapi.ChargeReq{
+		PaymentType: coreapi.PaymentTypeGopay,
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  "12345",
+			GrossAmt: 200000,
+		},
+		CreditCard: &coreapi.CreditCardDetails{
+			TokenID:        "YOUR-CC-TOKEN",
+			Authentication: true,
+		},
+		Items: &[]midtrans.ItemDetails{
+			{
+				ID:    "ITEM1",
+				Price: 200000,
+				Qty:   1,
+				Name:  "Someitem",
+			},
+		},
+	}
+
+	// 3. Request to Midtrans
+	coreApiRes, _ := c.ChargeTransaction(chargeReq)
+	fmt.Println("Response coreAPI:", coreApiRes)
 }

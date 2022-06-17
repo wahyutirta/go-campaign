@@ -6,7 +6,9 @@ import (
 	"gocampaign/campaign"
 	"gocampaign/handler"
 	"gocampaign/helper"
-	"gocampaign/payment"
+	"gocampaign/paymentmidtrans"
+	"gocampaign/paymentstripe"
+	"gocampaign/paymentxendit"
 	"gocampaign/transaction"
 	"gocampaign/user"
 	"log"
@@ -37,8 +39,12 @@ func main() {
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 	campaignService := campaign.NewService(campaignRepository)
-	paymentService := payment.NewService()
-	transactionService := transaction.NewService(transactionRepository, campaignRepository, paymentService)
+
+	midtransService := paymentmidtrans.NewService()
+	xenditService := paymentxendit.NewService()
+	stripeService := paymentstripe.NewService()
+
+	transactionService := transaction.NewService(transactionRepository, campaignRepository, midtransService, xenditService, stripeService)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)

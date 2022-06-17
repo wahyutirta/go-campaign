@@ -1,4 +1,4 @@
-package payment
+package paymentmidtrans
 
 type Transaction struct {
 	ID     int
