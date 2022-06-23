@@ -2,6 +2,7 @@ package paymentxendit
 
 import (
 	"fmt"
+	"gocampaign/entity"
 	"gocampaign/user"
 	"log"
 	"strconv"
@@ -15,14 +16,14 @@ type service struct {
 }
 
 type Service interface {
-	GetPayment(transaction Transaction, user user.User) (string, error)
+	GetPayment(transaction entity.Transaction, user user.User) (string, error)
 }
 
 func NewService() *service {
 	return &service{}
 }
 
-func (ser *service) GetPayment(transaction Transaction, user user.User) (string, error) {
+func (ser *service) GetPayment(transaction entity.Transaction, user user.User) (string, error) {
 
 	// Basic setup
 	xenCli := client.New("xnd_development_hq7JLiie9KzU5HMsgrUN14JatgYDn0fLRhjgPA5X79ZTQoq6qwt3jrnDWDwigFN")

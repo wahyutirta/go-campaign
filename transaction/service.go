@@ -3,18 +3,17 @@ package transaction
 import (
 	"errors"
 	"gocampaign/campaign"
+	"gocampaign/entity"
 	"gocampaign/paymentmidtrans"
-	"gocampaign/paymentstripe"
 	"gocampaign/paymentxendit"
+	"gocampaign/user"
 	"strconv"
 )
 
 type service struct {
-	repository             Repository
-	campaignRepository     campaign.Repository
-	paymentServiceMidtrans paymentmidtrans.Service
-	paymentServiceXendit   paymentxendit.Service
-	paymentServiceStripe   paymentstripe.Service
+	repository         Repository
+	campaignRepository campaign.Repository
+	payment            Payment
 }
 
 type Service interface {
@@ -24,8 +23,12 @@ type Service interface {
 	ProcessPayment(input TransactionNotificationInput) error
 }
 
-func NewService(repository Repository, campaignRepository campaign.Repository, paymentServiceMidtrans paymentmidtrans.Service, paymentServiceXendit paymentxendit.Service, paymentServiceStripe paymentstripe.Service) *service {
-	return &service{repository, campaignRepository, paymentServiceMidtrans, paymentServiceXendit, paymentServiceStripe}
+type Payment interface {
+	GetPayment(transaction entity.Transaction, user user.User) (string, error)
+}
+
+func NewService(repository Repository, campaignRepository campaign.Repository) *service {
+	return &service{repository, campaignRepository, nil}
 }
 
 func (s *service) GetTransactionByCampaignID(input GetCampaignTransactionsInput) ([]Transaction, error) {
@@ -66,75 +69,29 @@ func (s *service) CreateTransaction(input CreateTransactionInput) (Transaction, 
 		return newTransaction, err
 	}
 
+	paymentTransaction := entity.Transaction{
+		ID:     newTransaction.ID,
+		Amount: int64(newTransaction.Amount),
+	}
+
 	if input.PaymentProvider == "midtrans" {
-		paymentTransaction := paymentmidtrans.Transaction{
-			ID:     newTransaction.ID,
-			Amount: int64(newTransaction.Amount),
-		}
-
-		paymentURL, err := s.paymentServiceMidtrans.GetPayment(paymentTransaction, input.User)
-
-		if err != nil {
-			return newTransaction, err
-		}
-
-		newTransaction.PaymentURL = paymentURL
-
-		newTransaction, err = s.repository.UpdateTransaction(newTransaction)
-		if err != nil {
-			return newTransaction, err
-		}
-
+		s.payment = paymentmidtrans.NewService()
 	} else if input.PaymentProvider == "xendit" {
-		paymentTransaction := paymentxendit.Transaction{
-			ID:     transaction.ID,
-			Amount: int64(transaction.Amount),
-		}
-
-		paymentURL, err := s.paymentServiceXendit.GetPayment(paymentTransaction, input.User)
-
-		if err != nil {
-			return transaction, err
-		}
-
-		transaction.PaymentURL = paymentURL
-
-		transaction, err = s.repository.UpdateTransaction(newTransaction)
-		if err != nil {
-			return newTransaction, err
-		}
-
-		newTransaction.PaymentURL = paymentURL
-
-		newTransaction, err = s.repository.UpdateTransaction(newTransaction)
-		if err != nil {
-			return newTransaction, err
-		}
+		s.payment = paymentxendit.NewService()
 	} else if input.PaymentProvider == "stripe" {
-		paymentTransaction := paymentstripe.Transaction{
-			ID:     transaction.ID,
-			Amount: int64(transaction.Amount),
-		}
+		s.payment = paymentxendit.NewService()
+	}
+	paymentURL, err := s.payment.GetPayment(paymentTransaction, input.User)
 
-		paymentURL, err := s.paymentServiceStripe.GetPayment(paymentTransaction, input.User)
+	if err != nil {
+		return newTransaction, err
+	}
 
-		if err != nil {
-			return transaction, err
-		}
+	newTransaction.PaymentURL = paymentURL
 
-		transaction.PaymentURL = paymentURL
-
-		transaction, err = s.repository.UpdateTransaction(newTransaction)
-		if err != nil {
-			return newTransaction, err
-		}
-
-		newTransaction.PaymentURL = paymentURL
-
-		newTransaction, err = s.repository.UpdateTransaction(newTransaction)
-		if err != nil {
-			return newTransaction, err
-		}
+	newTransaction, err = s.repository.UpdateTransaction(newTransaction)
+	if err != nil {
+		return newTransaction, err
 	}
 
 	return newTransaction, nil

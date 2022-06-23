@@ -2,6 +2,7 @@ package paymentstripe
 
 import (
 	"fmt"
+	"gocampaign/entity"
 	"gocampaign/user"
 
 	"github.com/stripe/stripe-go/v72"
@@ -15,14 +16,14 @@ type service struct {
 }
 
 type Service interface {
-	GetPayment(transaction Transaction, user user.User) (string, error)
+	GetPayment(transaction entity.Transaction, user user.User) (string, error)
 }
 
 func NewService() *service {
 	return &service{}
 }
 
-func (ser *service) GetPayment(transaction Transaction, user user.User) (string, error) {
+func (ser *service) GetPayment(transaction entity.Transaction, user user.User) (string, error) {
 
 	stripe.Key = "sk_test_51LAr8zJT2q3qqnqADiNTfKo1oVTkK0GKnm8pgEv8oPb5kM3r6VcOPBu14oLVB2bYHkWTiUa7B0BOxXne12girWCY00JjzAo76t"
 	params := &stripe.CustomerParams{

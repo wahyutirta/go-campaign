@@ -3,6 +3,7 @@ package paymentmidtrans
 import (
 	"context"
 	"fmt"
+	"gocampaign/entity"
 	"gocampaign/user"
 	"reflect"
 	"strconv"
@@ -16,7 +17,7 @@ type service struct {
 }
 
 type Service interface {
-	GetPayment(transaction Transaction, user user.User) (string, error)
+	GetPayment(transaction entity.Transaction, user user.User) (string, error)
 }
 
 func NewService() *service {
@@ -57,7 +58,7 @@ func initializeCoreClient() {
 	c.New("SB-Mid-server-0men3mQGRfApcGptDcNo573B", midtrans.Sandbox)
 }
 
-func GenerateSnapReq(transaction Transaction, user user.User) *snap.Request {
+func GenerateSnapReq(transaction entity.Transaction, user user.User) *snap.Request {
 
 	// Initiate Customer address
 	custAddress := &midtrans.CustomerAddress{
@@ -146,7 +147,7 @@ func createUrlTransactionWithGateway(snapReq *snap.Request) (string, error) {
 	return resp, nil
 }
 
-func (ser *service) GetPayment(transaction Transaction, user user.User) (string, error) {
+func (ser *service) GetPayment(transaction entity.Transaction, user user.User) (string, error) {
 	snapReq := GenerateSnapReq(transaction, user)
 	initializeSnapClient()
 	initializeCoreClient()
