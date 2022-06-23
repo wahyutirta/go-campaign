@@ -94,3 +94,31 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusBadRequest, response)
 
 }
+
+func (h *transactionHandler) GetNotification(c *gin.Context) {
+	var input transaction.TransactionNotificationInput
+	err := c.ShouldBindJSON(&input)
+
+	if err != nil {
+		response := helper.APIResponse("Failed to proceed notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+
+	}
+
+	err = h.service.ProcessPayment(input)
+
+	if err != nil {
+		response := helper.APIResponse("Failed to proceed notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+
+	}
+
+	c.JSON(http.StatusOK, input)
+}
+
+// input dari user
+// handler tangkap input, mapping ke input struct
+// panggil service buat transaksi,
+// panggil repository, create new transaction data
